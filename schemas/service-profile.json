@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://servernah.atlancis.internal/schemas/service-profile/v1",
+  "title": "ServiceProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "resilience/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "Service"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_id", "name", "department", "owner_team"],
+      "properties": {
+        "service_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{3,64}$",
+          "description": "Primary key used as relational reference across all catalog files"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 128
+        },
+        "department": {
+          "type": "string",
+          "enum": ["devops", "ebu", "shared"]
+        },
+        "owner_team": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 512
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "topology", "sla_targets", "revenue_impact"],
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": [
+            "tier-1-mission-critical",
+            "tier-2-business-critical",
+            "tier-3-business-operational",
+            "tier-4-non-critical"
+          ]
+        },
+        "topology": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary_zone", "failover_zone", "replication_mode"],
+          "properties": {
+            "primary_zone": {
+              "type": "string",
+              "enum": ["adc-primary", "paix-failover"]
+            },
+            "failover_zone": {
+              "type": "string",
+              "enum": ["adc-primary", "paix-failover"]
+            },
+            "replication_mode": {
+              "type": "string",
+              "enum": ["active-active", "active-passive", "passive-only"]
+            }
+          }
+        },
+        "sla_targets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rto_minutes", "rpo_minutes", "uptime_percent", "mttr_minutes"],
+          "properties": {
+            "rto_minutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440,
+              "description": "Maximum acceptable time to restore service after outage"
+            },
+            "rpo_minutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440,
+              "description": "Maximum acceptable data loss measured in time"
+            },
+            "uptime_percent": {
+              "type": "number",
+              "minimum": 95.0,
+              "maximum": 100.0,
+              "description": "Committed service uptime as a percentage"
+            },
+            "mttr_minutes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1440,
+              "description": "Target mean time to recovery"
+            }
+          }
+        },
+        "revenue_impact": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        }
+      }
+    }
+  }
+}

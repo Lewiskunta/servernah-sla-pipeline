@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://servernah.atlancis.internal/schemas/recovery-objectives/v1",
+  "title": "RecoveryObjectives",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "rto",
+    "rpo",
+    "mttr",
+    "mtbf",
+    "slo_feasibility"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "resilience/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "RecoveryObjectives"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_ref", "computed_at"],
+      "properties": {
+        "service_ref": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{3,64}$"
+        },
+        "computed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "rto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_minutes", "adjusted_minutes", "final_minutes", "tier"],
+      "properties": {
+        "base_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "dependency_floor_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "adjusted_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "final_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "tier-1-mission-critical-0-4h",
+            "tier-2-business-critical-4-8h",
+            "tier-3-business-operational-8-24h",
+            "tier-4-non-critical-24h-plus"
+          ]
+        }
+      }
+    },
+    "rpo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_minutes", "final_minutes", "tier"],
+      "properties": {
+        "base_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "adjusted_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "final_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "tier-1-no-data-loss-0-15min",
+            "tier-2-minimal-loss-15-60min",
+            "tier-3-moderate-loss-1-4h",
+            "tier-4-significant-loss-4h-plus"
+          ]
+        }
+      }
+    },
+    "mttr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_minutes", "adjusted_minutes"],
+      "properties": {
+        "base_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "complexity_adjustment_factor": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 3.0
+        },
+        "adjusted_minutes": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "mtbf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_days", "adjusted_days"],
+      "properties": {
+        "base_days": {
+          "type": "number",
+          "minimum": 0
+        },
+        "resource_availability_factor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "staff_expertise_factor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "adjusted_days": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "slo_feasibility": {
+      "type": "string",
+      "enum": ["feasible", "marginal", "infeasible"]
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://servernah.atlancis.internal/schemas/recovery-sequence/v1",
+  "title": "RecoverySequence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "failover_context",
+    "steps"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "resilience/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "RecoveryPlaybook"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_ref", "playbook_id", "version"],
+      "properties": {
+        "service_ref": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{3,64}$"
+        },
+        "playbook_id": {
+          "type": "string",
+          "pattern": "^pb-[a-z0-9-]+-[0-9]{3}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        },
+        "rto_ceiling_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Cumulative step durations must not exceed this value"
+        }
+      }
+    },
+    "failover_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_zone", "target_zone", "trigger_condition"],
+      "properties": {
+        "source_zone": {
+          "type": "string",
+          "enum": ["adc-primary", "paix-failover"]
+        },
+        "target_zone": {
+          "type": "string",
+          "enum": ["adc-primary", "paix-failover"]
+        },
+        "trigger_condition": {
+          "type": "string",
+          "enum": [
+            "full-site-failure",
+            "partial-site-degradation",
+            "planned-maintenance",
+            "network-partition"
+          ]
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "priority_order",
+          "step_id",
+          "action",
+          "component_ref",
+          "estimated_duration_minutes",
+          "depends_on",
+          "rollback_action"
+        ],
+        "properties": {
+          "priority_order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "step_id": {
+            "type": "string",
+            "pattern": "^step-[0-9]{2}$"
+          },
+          "action": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 256
+          },
+          "component_ref": {
+            "type": "string",
+            "pattern": "^(infra|net|sw|ext)-[a-z0-9-]+-[0-9]{2}$"
+          },
+          "estimated_duration_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 480
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^step-[0-9]{2}$"
+            }
+          },
+          "rollback_action": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 256
+          },
+          "responsible_team": {
+            "type": "string",
+            "enum": ["devops", "ebu", "network-ops", "vendor-support"]
+          },
+          "validation_check": {
+            "type": "string",
+            "maxLength": 256
+          }
+        }
+      }
+    }
+  }
+}

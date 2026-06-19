@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://servernah.atlancis.internal/schemas/sla-parameters/v1",
+  "title": "SLAParameters",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "time_based",
+    "frequency_and_data",
+    "dependency_metrics",
+    "qualitative",
+    "customer_override"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "resilience/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "SLAParameters"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["service_ref", "version", "last_updated"],
+      "properties": {
+        "service_ref": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{3,64}$",
+          "description": "Must match service_id in service.yaml exactly"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "time_based": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ttd_minutes", "ttir_minutes", "ttcr_minutes", "ttvr_minutes"],
+      "properties": {
+        "ttd_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Time to Detect — from first alert to acknowledgement"
+        },
+        "ttir_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Time to Initiate Recovery — from acknowledgement to first recovery action"
+        },
+        "ttcr_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Time to Complete Recovery — active repair duration"
+        },
+        "ttvr_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Time to Validate Recovery — confirmation that service is fully restored"
+        }
+      }
+    },
+    "frequency_and_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backup_frequency_minutes", "data_change_rate_gb_per_hour", "incident_frequency_per_day"],
+      "properties": {
+        "backup_frequency_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Interval between backup snapshots in minutes"
+        },
+        "data_change_rate_gb_per_hour": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10000,
+          "description": "Average rate of data change between backups"
+        },
+        "incident_frequency_per_day": {
+          "type": "number",
+          "minimum": 0.001,
+          "maximum": 100,
+          "description": "Average number of service-impacting incidents per day. Minimum 0.001 to prevent division by zero in MTBF calculation."
+        }
+      }
+    },
+    "dependency_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rtd_minutes", "ncd_count"],
+      "properties": {
+        "rtd_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440,
+          "description": "Recovery Times for Dependencies — weighted average of all upstream dependency RTOs"
+        },
+        "ncd_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50,
+          "description": "Number of Critical Dependencies whose failure cascades to this service"
+        }
+      }
+    },
+    "qualitative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ic", "gd", "ra", "sea", "sc"],
+      "properties": {
+        "ic": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Infrastructure Complexity. 1=Simple, 3=Moderate, 5=Very Complex. Inflates MTTR via (IC-1)/4."
+        },
+        "gd": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Geographic Distribution. 1=Single site, 2=Multi-site same region, 3=Multi-region. Inflates MTTR via (GD-1)/4."
+        },
+        "ra": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Resource Availability. 1=Limited, 2=Adequate, 3=Abundant. Deflates MTBF via RA/3."
+        },
+        "sea": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "Staff Expertise and Availability. 1=Limited, 2=Competent, 3=Expert. Deflates MTBF via SEA/3."
+        },
+        "sc": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "description": "Service Criticality. 1=Mission Critical, 2=High, 3=Medium, 4=Low. Adjusts RTO via SC/4."
+        }
+      }
+    },
+    "customer_override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["csr", "customer_rto_minutes", "customer_rpo_minutes"],
+      "properties": {
+        "csr": {
+          "type": "integer",
+          "enum": [0, 1],
+          "description": "Customer-Specific Requirements flag. 0=Standard SLA, 1=Customer override active."
+        },
+        "customer_rto_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Customer-mandated RTO. Ignored in calculations when CSR is 0."
+        },
+        "customer_rpo_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440,
+          "description": "Customer-mandated RPO. Ignored in calculations when CSR is 0."
+        }
+      }
+    }
+  }
+}

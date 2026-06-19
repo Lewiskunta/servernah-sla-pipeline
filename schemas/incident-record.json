@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://servernah.atlancis.internal/schemas/incident-record/v1",
+  "title": "IncidentRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "timeline",
+    "computed_metrics",
+    "compliance"
+  ],
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "resilience/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "IncidentRecord"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["incident_id", "service_ref", "severity", "created_by"],
+      "properties": {
+        "incident_id": {
+          "type": "string",
+          "pattern": "^INC-[0-9]{8}-[A-Z0-9]{6}$",
+          "description": "Format: INC-YYYYMMDD-XXXXXX"
+        },
+        "service_ref": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{3,64}$"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["p1-critical", "p2-high", "p3-medium", "p4-low"]
+        },
+        "created_by": {
+          "type": "string",
+          "enum": ["zabbix-alert", "manual-report", "opensearch-event", "mysupport-ticket"]
+        }
+      }
+    },
+    "timeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detected_at",
+        "recorded_at",
+        "recovery_initiated_at",
+        "resolved_at",
+        "reported_at"
+      ],
+      "properties": {
+        "detected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recovery_initiated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reported_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "raw_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ttd_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ttir_minutes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ttcr_minutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "computed_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rto_minutes", "rpo_minutes", "mttr_minutes"],
+      "properties": {
+        "rto_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "rpo_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mttr_minutes": {
+          "type": "number",
+          "minimum": 0
+        },
+        "mtbf_days": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "compliance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rto_status", "rpo_status", "overall_status"],
+      "properties": {
+        "rto_status": {
+          "type": "string",
+          "enum": ["compliant", "breached", "marginal"]
+        },
+        "rpo_status": {
+          "type": "string",
+          "enum": ["compliant", "breached", "marginal"]
+        },
+        "overall_status": {
+          "type": "string",
+          "enum": ["compliant", "breached", "marginal"]
+        },
+        "breach_gap_minutes": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
