@@ -34,7 +34,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["component_id", "name", "datacenter_zone", "role", "criticality", "rto_minutes", "weight"],
+        "required": ["component_id", "name", "datacenter_zone", "role", "criticality", "rto_minutes", "weight", "availability_state"],
         "properties": {
           "component_id": {
             "type": "string",
@@ -70,6 +70,10 @@
           "redundancy": {
             "type": "string",
             "enum": ["active-active", "active-passive", "none"]
+          },
+          "availability_state": {
+            "type": "string",
+            "enum": ["active", "passive", "standby", "degraded", "offline"]
           }
         }
       }

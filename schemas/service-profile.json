@@ -46,13 +46,16 @@
         "description": {
           "type": "string",
           "maxLength": 512
+        },
+        "crd_compatible": {
+          "type": "boolean"
         }
       }
     },
     "spec": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["tier", "topology", "sla_targets", "revenue_impact"],
+      "required": ["tier", "topology", "sla_targets", "revenue_impact", "blast_radius"],
       "properties": {
         "tier": {
           "type": "string",
@@ -116,6 +119,33 @@
         "revenue_impact": {
           "type": "string",
           "enum": ["critical", "high", "medium", "low"]
+        },
+        "blast_radius": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["affected_customer_segments", "estimated_revenue_impact_usd_per_hour", "downstream_services_count", "regulatory_exposure"],
+          "properties": {
+            "affected_customer_segments": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["iaas-tenants", "baremetal-tenants", "paas-tenants", "internal-ops", "external-api-consumers"]
+              },
+              "minItems": 1
+            },
+            "estimated_revenue_impact_usd_per_hour": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "downstream_services_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "regulatory_exposure": {
+              "type": "string",
+              "enum": ["high", "medium", "low", "none"]
+            }
+          }
         }
       }
     }
