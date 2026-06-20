@@ -1,0 +1,178 @@
+apiVersion: resilience/v1
+kind: RecoveryPlaybook
+
+metadata:
+  service_ref: servernah-iaas-compute
+  playbook_id: pb-iaas-failover-001
+  version: "1.0"
+  rto_ceiling_minutes: 240
+
+failover_context:
+  source_zone: adc-primary
+  target_zone: paix-failover
+  trigger_condition: full-site-failure
+
+steps:
+  - priority_order: 1
+    step_id: step-01
+    action: Confirm Zabbix alert is a genuine site-level failure and not a monitoring false positive. Verify OpenSearch service state index shows ADC compute nodes offline.
+    component_ref: infra-mgmt-adc-01
+    estimated_duration_minutes: 10
+    depends_on: []
+    rollback_action: Cancel failover procedure and clear incident record if monitoring confirms false positive.
+    responsible_team: devops
+    validation_check: OpenSearch query returns zero active compute nodes in adc-primary zone.
+
+  - priority_order: 2
+    step_id: step-02
+    action: Freeze new workload placement and drain in-flight API requests to ADC Nova scheduler. Update MySupport ticket to Recovery Initiated state to capture TTIR timestamp.
+    component_ref: sw-nova-01
+    estimated_duration_minutes: 5
+    depends_on:
+      - step-01
+    rollback_action: Re-enable Nova scheduler at ADC and resume normal placement if failover is aborted.
+    responsible_team: devops
+    validation_check: Nova scheduler API returns 503 for new placement requests. Existing instances remain in their current state.
+
+  - priority_order: 3
+    step_id: step-03
+    action: Verify Ceph replication lag between ADC and PAIX storage nodes is within RPO threshold of 15 minutes. Do not proceed if replication lag exceeds threshold.
+    component_ref: infra-stor-adc-01
+    estimated_duration_minutes: 10
+    depends_on:
+      - step-02
+    rollback_action: Halt failover and escalate to vendor support if Ceph replication lag exceeds 15 minutes. Document data loss exposure in incident record.
+    responsible_team: devops
+    validation_check: Ceph status output shows replication lag below 900 seconds across all pools.
+
+  - priority_order: 4
+    step_id: step-04
+    action: Instruct Liquid Intelligent Technologies NOC via P1 escalation track to reroute MPLS/VPLS circuit traffic from ADC to PAIX. Confirm BGP route advertisement update.
+    component_ref: net-mpls-liq-01
+    estimated_duration_minutes: 30
+    depends_on:
+      - step-03
+    rollback_action: Request Liquid IT NOC to revert BGP route advertisement to ADC if PAIX activation fails.
+    responsible_team: network-ops
+    validation_check: BGP route table confirms PAIX prefix is being advertised. Traceroute to management VIP resolves via PAIX path.
+
+  - priority_order: 5
+    step_id: step-05
+    action: Power on and verify PAIX KVM hypervisor cluster nodes. Confirm KVM host services are active and reachable from PAIX management network.
+    component_ref: infra-kvm-paix-01
+    estimated_duration_minutes: 20
+    depends_on:
+      - step-04
+    rollback_action: Power down PAIX KVM nodes and revert to ADC if hypervisor initialisation fails within 20 minutes.
+    responsible_team: devops
+    validation_check: virsh list --all returns running state on all PAIX KVM hosts. PAIX management node ping responds.
+
+  - priority_order: 6
+    step_id: step-06
+    action: Start MariaDB database service on PAIX management node. Verify OpenStack database schema is intact and replication from ADC master is consistent.
+    component_ref: sw-mariadb-01
+    estimated_duration_minutes: 15
+    depends_on:
+      - step-05
+    rollback_action: Stop MariaDB service and restore from most recent Ceph snapshot if schema integrity check fails.
+    responsible_team: devops
+    validation_check: MariaDB health check query returns success. All OpenStack database tables present and row counts within 5 percent of ADC baseline.
+
+  - priority_order: 7
+    step_id: step-07
+    action: Start RabbitMQ message broker on PAIX management node. Verify all OpenStack vhosts and queues are initialised.
+    component_ref: sw-rabbitmq-01
+    estimated_duration_minutes: 10
+    depends_on:
+      - step-06
+    rollback_action: Stop RabbitMQ and investigate queue state before retrying if vhost initialisation fails.
+    responsible_team: devops
+    validation_check: RabbitMQ management API returns all expected vhosts active. Queue depth is zero indicating no stale messages.
+
+  - priority_order: 8
+    step_id: step-08
+    action: Start Keystone Identity Service on PAIX. Verify token issuance is operational and service catalogue is consistent with ADC state.
+    component_ref: sw-keystone-01
+    estimated_duration_minutes: 10
+    depends_on:
+      - step-07
+    rollback_action: Stop Keystone and verify MariaDB connectivity before retrying if token issuance fails.
+    responsible_team: devops
+    validation_check: Keystone token issue API returns valid scoped token for admin user. Service catalogue endpoint count matches expected value.
+
+  - priority_order: 9
+    step_id: step-09
+    action: Start Placement Service on PAIX. Verify resource provider inventory is populated from Ceph-replicated state.
+    component_ref: sw-placement-01
+    estimated_duration_minutes: 10
+    depends_on:
+      - step-08
+    rollback_action: Stop Placement service and re-run resource provider sync if inventory is empty.
+    responsible_team: devops
+    validation_check: Placement API resource providers endpoint returns non-zero provider count matching PAIX hypervisor node count.
+
+  - priority_order: 10
+    step_id: step-10
+    action: Start Nova Compute Service on PAIX KVM hypervisor nodes. Verify compute host list is populated and hypervisor nodes are in enabled state.
+    component_ref: sw-nova-01
+    estimated_duration_minutes: 20
+    depends_on:
+      - step-09
+    rollback_action: Stop Nova services and verify Placement and RabbitMQ connectivity before retrying if compute hosts do not register.
+    responsible_team: devops
+    validation_check: Nova hypervisor list returns all PAIX KVM nodes in up and enabled state.
+
+  - priority_order: 11
+    step_id: step-11
+    action: Start Neutron Network Service on PAIX. Verify tenant networks and router configurations are consistent with ADC state replicated via MariaDB.
+    component_ref: sw-neutron-01
+    estimated_duration_minutes: 20
+    depends_on:
+      - step-10
+    rollback_action: Stop Neutron and verify MariaDB network schema tables before retrying if tenant networks are missing.
+    responsible_team: devops
+    validation_check: Neutron network list returns all expected tenant networks. Router external gateway associations are intact.
+
+  - priority_order: 12
+    step_id: step-12
+    action: Start Cinder Block Storage Service on PAIX. Verify Ceph backend connectivity and volume availability for existing tenant volumes.
+    component_ref: sw-cinder-01
+    estimated_duration_minutes: 15
+    depends_on:
+      - step-11
+    rollback_action: Stop Cinder and verify Ceph pool accessibility from PAIX nodes before retrying if volume backend reports error.
+    responsible_team: devops
+    validation_check: Cinder volume list returns all expected tenant volumes in available or in-use state. No volumes in error state.
+
+  - priority_order: 13
+    step_id: step-13
+    action: Start Glance Image Service on PAIX. Verify image catalogue is accessible from Ceph object store replicated to PAIX.
+    component_ref: sw-glance-01
+    estimated_duration_minutes: 10
+    depends_on:
+      - step-12
+    rollback_action: Stop Glance and verify Ceph object pool accessibility before retrying if image list returns empty.
+    responsible_team: devops
+    validation_check: Glance image list returns all public images. Image download test completes within 60 seconds.
+
+  - priority_order: 14
+    step_id: step-14
+    action: Start Skyline Control Plane on PAIX management node. Verify dashboard is accessible and displays correct resource inventory.
+    component_ref: sw-skyline-01
+    estimated_duration_minutes: 10
+    depends_on:
+      - step-13
+    rollback_action: Stop Skyline and investigate Keystone token integration if dashboard returns authentication error. Platform remains operational without Skyline.
+    responsible_team: devops
+    validation_check: Skyline health endpoint returns HTTP 200. Resource overview panel displays correct instance and volume counts.
+
+  - priority_order: 15
+    step_id: step-15
+    action: Execute end-to-end validation. Launch a test instance on PAIX compute, attach a volume, verify network connectivity, then terminate. Update Zabbix to monitor PAIX endpoints. Update MySupport ticket to Resolved state to capture TTCR timestamp.
+    component_ref: infra-kvm-paix-01
+    estimated_duration_minutes: 15
+    depends_on:
+      - step-14
+    rollback_action: Escalate to vendor support and maintain current PAIX state if end-to-end validation fails. Do not revert to ADC until root cause is confirmed.
+    responsible_team: devops
+    validation_check: Test instance reaches running state within 5 minutes. Volume attaches successfully. ICMP ping to instance floating IP succeeds. MySupport ticket status is Resolved.

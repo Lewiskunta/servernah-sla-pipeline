@@ -1,0 +1,51 @@
+apiVersion: resilience/v1
+kind: External
+
+metadata:
+  service_ref: servernah-iaas-compute
+
+external_dependencies:
+  - component_id: ext-liq-01
+    name: Liquid Intelligent Technologies — Primary WAN Circuit
+    vendor_type: wan-provider
+    endpoint: https://api.internal.liquid-noc/v1/circuit-status
+    auth_method: mtls
+    criticality: hard
+    vendor_rto_minutes: 240
+    weight: 0.40
+    escalation_track: p1-critical
+
+  - component_id: ext-adc-01
+    name: Africa Data Centres — ADC Nairobi Colocation
+    vendor_type: colocation
+    endpoint: https://api.internal.adc-nbi/v1/facility-status
+    auth_method: api-key
+    criticality: hard
+    vendor_rto_minutes: 480
+    weight: 0.25
+    escalation_track: p1-critical
+
+  - component_id: ext-paix-01
+    name: PAIX — Nairobi Colocation Failover Facility
+    vendor_type: colocation
+    endpoint: https://api.internal.paix-nbi/v1/facility-status
+    auth_method: api-key
+    criticality: hard
+    vendor_rto_minutes: 480
+    weight: 0.25
+    escalation_track: p1-critical
+
+  - component_id: ext-dns-01
+    name: Authoritative DNS Provider
+    vendor_type: dns-provider
+    endpoint: https://api.internal.dns-provider/v1/zone-status
+    auth_method: api-key
+    criticality: soft
+    vendor_rto_minutes: 60
+    weight: 0.10
+    escalation_track: p2-high
+
+compliance_mandates:
+  - mandate_id: comp-iso27001-01
+    standard: iso-27001
+    scope: Information security management covering IaaS compute, storage, and network infrastructure across ADC and PAIX facilities

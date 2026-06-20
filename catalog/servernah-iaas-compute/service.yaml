@@ -1,0 +1,34 @@
+apiVersion: resilience/v1
+kind: Service
+
+metadata:
+  service_id: servernah-iaas-compute
+  name: Servernah IaaS Compute Platform
+  department: devops
+  owner_team: Servernah Platform Engineering
+  description: Multi-region OpenStack-based Infrastructure-as-a-Service compute platform serving IaaS tenants across ADC and PAIX colocation facilities
+  crd_compatible: true
+
+spec:
+  tier: tier-1-mission-critical
+
+  topology:
+    primary_zone: adc-primary
+    failover_zone: paix-failover
+    replication_mode: active-passive
+
+  sla_targets:
+    rto_minutes: 240
+    rpo_minutes: 15
+    uptime_percent: 99.95
+    mttr_minutes: 225
+
+  revenue_impact: critical
+
+  blast_radius:
+    affected_customer_segments:
+      - iaas-tenants
+      - internal-ops
+    estimated_revenue_impact_usd_per_hour: 4500
+    downstream_services_count: 3
+    regulatory_exposure: medium

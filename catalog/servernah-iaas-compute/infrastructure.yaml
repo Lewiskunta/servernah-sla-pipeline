@@ -1,0 +1,83 @@
+apiVersion: resilience/v1
+kind: Infrastructure
+
+metadata:
+  service_ref: servernah-iaas-compute
+
+physical_nodes:
+  - component_id: infra-kvm-adc-01
+    name: KVM Hypervisor Node 01 — ADC Primary
+    datacenter_zone: adc-primary
+    role: hypervisor
+    criticality: hard
+    availability_state: active
+    redundancy: active-passive
+    rto_minutes: 60
+    weight: 0.25
+
+  - component_id: infra-kvm-adc-02
+    name: KVM Hypervisor Node 02 — ADC Primary
+    datacenter_zone: adc-primary
+    role: hypervisor
+    criticality: hard
+    availability_state: active
+    redundancy: active-passive
+    rto_minutes: 60
+    weight: 0.25
+
+  - component_id: infra-kvm-paix-01
+    name: KVM Hypervisor Node 01 — PAIX Failover
+    datacenter_zone: paix-failover
+    role: hypervisor
+    criticality: hard
+    availability_state: passive
+    redundancy: active-passive
+    rto_minutes: 120
+    weight: 0.20
+
+  - component_id: infra-stor-adc-01
+    name: Ceph Storage Node 01 — ADC Primary
+    datacenter_zone: adc-primary
+    role: storage-node
+    criticality: hard
+    availability_state: active
+    redundancy: active-passive
+    rto_minutes: 45
+    weight: 0.15
+
+  - component_id: infra-stor-adc-02
+    name: Ceph Storage Node 02 — ADC Primary
+    datacenter_zone: adc-primary
+    role: storage-node
+    criticality: hard
+    availability_state: active
+    redundancy: active-passive
+    rto_minutes: 45
+    weight: 0.10
+
+  - component_id: infra-mgmt-adc-01
+    name: OpenStack Management Node — ADC Primary
+    datacenter_zone: adc-primary
+    role: management-node
+    criticality: hard
+    availability_state: active
+    redundancy: active-passive
+    rto_minutes: 30
+    weight: 0.05
+
+network_links:
+  - component_id: net-mpls-liq-01
+    name: Liquid Intelligent Technologies MPLS/VPLS Inter-Site Circuit
+    provider: Liquid Intelligent Technologies
+    link_type: mpls-vpls
+    criticality: hard
+    rto_minutes: 240
+    weight: 0.60
+
+  - component_id: net-mpls-liq-02
+    name: Liquid Intelligent Technologies MPLS/VPLS Backup Circuit
+    provider: Liquid Intelligent Technologies
+    link_type: mpls-vpls
+    criticality: soft
+    rto_minutes: 480
+    weight: 0.40

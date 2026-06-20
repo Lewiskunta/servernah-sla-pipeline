@@ -1,0 +1,78 @@
+apiVersion: resilience/v1
+kind: Software
+
+metadata:
+  service_ref: servernah-iaas-compute
+
+software_components:
+  - component_id: sw-keystone-01
+    name: OpenStack Keystone Identity Service
+    type: identity-service
+    version: "2024.1"
+    criticality: hard
+    rto_minutes: 10
+    weight: 0.15
+
+  - component_id: sw-mariadb-01
+    name: MariaDB OpenStack Database Backend
+    type: database
+    version: "10.11"
+    criticality: hard
+    rto_minutes: 15
+    weight: 0.15
+
+  - component_id: sw-rabbitmq-01
+    name: RabbitMQ Message Broker
+    type: message-broker
+    version: "3.13"
+    criticality: hard
+    rto_minutes: 10
+    weight: 0.10
+
+  - component_id: sw-nova-01
+    name: OpenStack Nova Compute Service
+    type: compute-service
+    version: "2024.1"
+    criticality: hard
+    rto_minutes: 20
+    weight: 0.20
+
+  - component_id: sw-neutron-01
+    name: OpenStack Neutron Network Service
+    type: network-service
+    version: "2024.1"
+    criticality: hard
+    rto_minutes: 20
+    weight: 0.15
+
+  - component_id: sw-cinder-01
+    name: OpenStack Cinder Block Storage Service
+    type: storage-service
+    version: "2024.1"
+    criticality: hard
+    rto_minutes: 15
+    weight: 0.10
+
+  - component_id: sw-glance-01
+    name: OpenStack Glance Image Service
+    type: image-service
+    version: "2024.1"
+    criticality: soft
+    rto_minutes: 20
+    weight: 0.05
+
+  - component_id: sw-placement-01
+    name: OpenStack Placement Service
+    type: placement-service
+    version: "2024.1"
+    criticality: hard
+    rto_minutes: 10
+    weight: 0.05
+
+  - component_id: sw-skyline-01
+    name: Skyline Control Plane
+    type: control-plane
+    version: "2024.1"
+    criticality: soft
+    rto_minutes: 25
+    weight: 0.05
