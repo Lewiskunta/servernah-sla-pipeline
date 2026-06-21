@@ -1,0 +1,28 @@
+apiVersion: resilience/v1
+kind: Service
+
+metadata:
+  service_id: test-service-01
+  name: Test Service
+  department: devops
+  owner_team: Test Team
+  crd_compatible: true
+
+spec:
+  tier: tier-1-mission-critical
+  topology:
+    primary_zone: adc-primary
+    failover_zone: paix-failover
+    replication_mode: active-passive
+  sla_targets:
+    rto_minutes: 99999
+    rpo_minutes: 15
+    uptime_percent: 99.95
+    mttr_minutes: 225
+  revenue_impact: critical
+  blast_radius:
+    affected_customer_segments:
+      - iaas-tenants
+    estimated_revenue_impact_usd_per_hour: 1000
+    downstream_services_count: 1
+    regulatory_exposure: low

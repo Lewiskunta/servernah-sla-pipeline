@@ -1,0 +1,35 @@
+apiVersion: resilience/v1
+kind: RecoveryPlaybook
+
+metadata:
+  service_ref: test-service-01
+  playbook_id: pb-test-failover-001
+  version: "1.0"
+  rto_ceiling_minutes: 240
+
+failover_context:
+  source_zone: adc-primary
+  target_zone: paix-failover
+  trigger_condition: full-site-failure
+
+steps:
+  - priority_order: 1
+    step_id: step-01
+    action: Confirm alert is genuine and not a monitoring false positive.
+    component_ref: infra-test-node-01
+    estimated_duration_minutes: 10
+    depends_on: []
+    rollback_action: Cancel failover if alert is confirmed as false positive.
+    responsible_team: devops
+    validation_check: Monitoring confirms zero active nodes in primary zone.
+
+  - priority_order: 2
+    step_id: step-02
+    action: Activate failover cluster in target zone.
+    component_ref: infra-test-node-02
+    estimated_duration_minutes: 20
+    depends_on:
+      - step-01
+    rollback_action: Power down failover cluster if activation fails.
+    responsible_team: devops
+    validation_check: All failover nodes return active state.
