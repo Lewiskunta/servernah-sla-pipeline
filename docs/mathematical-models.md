@@ -9,10 +9,10 @@ exactly.
 
 | Variable | Schema Key | Unit | Description |
 |----------|-----------|------|-------------|
-| TTD | `ttd_minutes` | minutes | Time to Detect — first alert to acknowledgement |
-| TTIR | `ttir_minutes` | minutes | Time to Initiate Recovery — acknowledgement to first action |
-| TTCR | `ttcr_minutes` | minutes | Time to Complete Recovery — active repair duration |
-| TTVR | `ttvr_minutes` | minutes | Time to Validate Recovery — confirmation of full restoration |
+| TTD | `ttd_minutes` | minutes | Time to Detect - first alert to acknowledgement |
+| TTIR | `ttir_minutes` | minutes | Time to Initiate Recovery - acknowledgement to first action |
+| TTCR | `ttcr_minutes` | minutes | Time to Complete Recovery - active repair duration |
+| TTVR | `ttvr_minutes` | minutes | Time to Validate Recovery - confirmation of full restoration |
 | BF | `backup_frequency_minutes` | minutes | Interval between backup snapshots |
 | DCR | `data_change_rate_gb_per_hour` | GB/hour | Average data change rate between backups |
 | IF | `incident_frequency_per_day` | per day | Average service-impacting incidents per day |
