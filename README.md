@@ -1,3 +1,5 @@
+<div align="center">
+
 # servernah-sla-pipeline
 
 [![Validate Spec](https://github.com/Lewiskunta/servernah-sla-pipeline/actions/workflows/validate-spec.yml/badge.svg)](https://github.com/Lewiskunta/servernah-sla-pipeline/actions/workflows/validate-spec.yml)
@@ -5,6 +7,8 @@
 ![Schema: JSON Schema Draft-07](https://img.shields.io/badge/schema-JSON%20Schema%20Draft--07-lightgrey)
 ![Platform: OpenStack](https://img.shields.io/badge/platform-OpenStack-red)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
+</div>
 
 This repository is the programmatic source of truth for SLA parameters,
 service topology, and disaster recovery sequencing across Atlancis

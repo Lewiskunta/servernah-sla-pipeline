@@ -23,8 +23,19 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Verify environment
+        run: |
+          python --version
+          pip show pyyaml jsonschema pytest | grep Version
+
+      - name: Check YAML syntax
+        run: python -c "import yaml, pathlib; [yaml.safe_load(f.read_text()) for f in pathlib.Path('catalog').rglob('*.yaml')]"
+
       - name: Run schema and referential integrity validation
         run: python scripts/validate.py
 
       - name: Run test suite
         run: python -m pytest tests/ -v --tb=short
+
+      - name: Run incident simulation smoke test
+        run: python scripts/simulate_incident.py
