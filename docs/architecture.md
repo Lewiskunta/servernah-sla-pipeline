@@ -49,8 +49,8 @@ flowchart LR
     E --> F[Phase 5\nReporting\nMTBF and compliance]
 ```
 
-The parameters that feed each phase — TTD, TTIR, TTCR, TTVR, backup frequency,
-incident rate, and qualitative modifiers — are all declared in
+The parameters that feed each phase: TTD, TTIR, TTCR, TTVR, backup frequency,
+incident rate, and qualitative modifiers - are all declared in
 `catalog/servernah-iaas-compute/sla-parameters.yaml` and validated against
 `schemas/sla-parameters.json` on every commit.
 
