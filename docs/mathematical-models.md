@@ -16,7 +16,7 @@ exactly.
 | BF | `backup_frequency_minutes` | minutes | Interval between backup snapshots |
 | DCR | `data_change_rate_gb_per_hour` | GB/hour | Average data change rate between backups |
 | IF | `incident_frequency_per_day` | per day | Average service-impacting incidents per day |
-| RTD | `rtd_minutes` | minutes | Recovery Times for Dependencies — weighted average upstream RTO |
+| RTD | `rtd_minutes` | minutes | Recovery Times for Dependencies - weighted average upstream RTO |
 | NCD | `ncd_count` | count | Number of Critical Dependencies whose failure cascades to this service |
 | IC | `ic` | 1 to 5 | Infrastructure Complexity |
 | GD | `gd` | 1 to 3 | Geographic Distribution |
