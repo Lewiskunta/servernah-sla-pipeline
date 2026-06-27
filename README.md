@@ -80,10 +80,10 @@ The Excel workbooks that preceded this repository are available as downloads
 for teams that need the human-readable design layer alongside the
 machine-readable specifications.
 
-- [Service Recovery Objectives Template](#)
-- [Service Dependency Mapping Template](#)
+- [Service Recovery Objectives Template](https://lewisinjai.dev/templates/service-recovery-objectives.xlsx)
+- [Service Dependency Mapping Template](https://lewisinjai.dev/templates/service-dependency-mapping.xlsx)
 
-Full project write-up: [Servernah SLA Monitoring Framework](#)
+Full project write-up: [Servernah SLA Monitoring Framework](https://lewisinjai.dev/work/sla-monitoring-framework/)
 
 ---
 
